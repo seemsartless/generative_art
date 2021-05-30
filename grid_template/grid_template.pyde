@@ -3,7 +3,7 @@ from random import shuffle, seed
 # grid_template - a template for generating a grid of items, adding randomness, etc... 
 # As inspired by https://github.com/aaronpenne/generative_art/tree/master/parc_pie
 
-# Written in Python for Processing
+# Written in Python for Processing - edited in gitpod.io
 
 debugShowGrid = False
 
