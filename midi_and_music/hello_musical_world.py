@@ -3,6 +3,8 @@
 #
 # Explorations working with midi files
 #
+# Checked into Github as:
+#        https://github.com/seemsartless/generative_art/tree/master/midi_and_music
 #
 #  https://github.com/kiecodes/generate-music
 
@@ -34,47 +36,118 @@ from midiutil import MIDIFile
 from oneSong import *
 
 print("Starting...")
-t1 = oneSong(key="C", tempo=100, tracks=4)
+t1 = oneSong(key="C", tempo=120, tracks=4)
 
 print(f"Pitch for C is {t1.midiPitch('C4')}")
+# D F A C
+# C Bb F C
+print(f"Pitch for D is {t1.midiPitch('D4')}")
 print(f"Pitch for F is {t1.midiPitch('F4')}")
 print(f"Pitch for A is {t1.midiPitch('A4')}")
-print(f"Pitch for C is {t1.midiPitch('C5')}")
+print(f"Pitch for B is {t1.midiPitch('B4')}")
+print(f"Pitch for Bb is {t1.midiPitch('Bb4')}")
+
+# How about sus chords?
+
+# And random
+#   addRandom(self, chord, octave, totalDuration, volume, track=1, div=2, max=2):
+for aChord in ["sus2", "sus4", "I", "sus2", "sus4", "I"]:
+    t1.addChord(aChord, duration=2, volume=80, octave=4, track=1)
+    t1.addRandom(aChord, totalDuration=2, volume=80, octave=4, track=2, div=4, max=2) # Add 4 random notes/pairs
+    t1.addRandom(aChord, totalDuration=2, volume=80, octave=4, track=3, div=4, max=1) # Add 4 random notes/pairs
+for aChord in ["sus2", "sus4", "I", "sus2", "sus4", "I"]:
+    t1.addChord(aChord, duration=2, volume=80, octave=4, track=1)
+    t1.addRandom(aChord, totalDuration=2, volume=80, octave=4, track=2, div=4, max=2) # Add 4 random notes/pairs
+    t1.addRandom(aChord, totalDuration=2, volume=80, octave=4, track=3, div=4, max=1) # Add 4 random notes/pairs
 
 
-
-
-# t1.addChord(chord="I", duration=1, volume=80, octave=3)
-# t1.addChord(chord="I", duration=1, volume=80, octave=4)
-# t1.addChord(chord="I", duration=1, volume=80, octave=5)
 
 # Common I V vi IV
-for i in [1,2,]:
-    t1.addChord(chord="I", duration=2, volume=80, octave=4)
-    t1.addChord(chord="V", duration=2, volume=80, octave=4)
-    t1.addChord(chord="vi", duration=2, volume=80, octave=4)
-    t1.addChord(chord="IV", duration=2, volume=80, octave=4)
+if 1 == 1:
+    for i in [1,2,]:
+        t1.addChord(chord="I", duration=2, volume=80, octave=4)
+        t1.addChord(chord="V", duration=2, volume=80, octave=4)
+        t1.addChord(chord="vi", duration=2, volume=80, octave=4)
+        t1.addChord(chord="IV", duration=2, volume=80, octave=4)
+    # A break
+    t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+    t1.addNotes(intervs=['C4'], duration=1, volume=40)
+    t1.addNotes(intervs=['D4'], duration=1, volume=40)
+    t1.addChord(chord="IV", duration=1, volume=0, octave=4)
 
-t1.addChord(chord="IV", duration=1, volume=0, octave=4)
-t1.addNotes(intervs=['C4'], duration=1, volume=40)
-t1.addNotes(intervs=['D4'], duration=1, volume=40)
-t1.addChord(chord="IV", duration=1, volume=0, octave=4)
-
-t1.changeKey(newKey="G")
-for i in [1,2]:
-    t1.addChord(chord="I", duration=2, volume=80, octave=4)
-    t1.addChord(chord="V", duration=2, volume=80, octave=4)
-    t1.addChord(chord="vi", duration=2, volume=80, octave=4)
-    t1.addChord(chord="IV", duration=2, volume=80, octave=4)
+    t1.changeKey(newKey="G")
+    for i in [1,2]:
+        t1.addChord(chord="I", duration=2, volume=80, octave=4)
+        t1.addChord(chord="V", duration=2, volume=80, octave=4)
+        t1.addChord(chord="vi", duration=2, volume=80, octave=4)
+        t1.addChord(chord="IV", duration=2, volume=80, octave=4)
 
 
+# Second common progression I IV V IV
+
+if 1 == 2:
+    # A break
+    # t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+    # t1.addNotes(intervs=['C4'], duration=1, volume=40)
+    # t1.addNotes(intervs=['D4'], duration=1, volume=40)
+    # t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+
+    t1.changeKey(newKey="C")
+    for i in [1,2,3,4]:
+        for aChord in ["I", "IV", "V", "IV"]:
+            t1.addChord(aChord, duration=2, volume=80, octave=4, track=1)
+            t1.addChord(aChord, duration=2, volume=80, octave=3, track=2)
+        # t1.addChord(chord="I", duration=2, volume=80, octave=4)
+        # t1.addChord(chord="IV", duration=2, volume=80, octave=4)
+        # t1.addChord(chord="V", duration=2, volume=80, octave=4)
+        # t1.addChord(chord="IV", duration=2, volume=80, octave=4)
 
 
-# t1.addChord(chord="I", duration=1, volume=80, octave=4)
-# t1.addChord(chord="V", duration=1, volume=80, octave=4)
-# t1.addChord(chord="vi", duration=1, volume=80, octave=4)
-# t1.addChord(chord="IV", duration=1, volume=80, octave=4)
+# Jazz progressions - https://www.learnjazzstandards.com/blog/learning-jazz/jazz-theory/jazz-chord-progressions/
+# 1. Major ii-V-I
+# 2. Minor ii-V-i
 
+# 3. Major I-vi-ii-V
+# 4. Minor i-vi-ii-V
+
+
+#Jazz progression ii-7 V7 Id7
+if 1==2:
+    # Used in https://www.youtube.com/watch?v=EwhosySVJO8
+    # A break
+    t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+    t1.addNotes(intervs=['C4'], duration=1, volume=40)
+    t1.addNotes(intervs=['D4'], duration=1, volume=40)
+    t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+    for aChord in ["ii-7", "V7", "Id7", "ii-7", "Id7", "ii-7", "V7"]:
+            t1.addChord(aChord, duration=2, volume=80, octave=4)
+    # t1.addChord(chord="ii-7", duration=2, volume=80, octave=4)
+    # t1.addChord(chord="V7", duration=2, volume=80, octave=4)
+    # t1.addChord(chord="Id7", duration=2, volume=80, octave=4)
+
+if 1 == 2:
+    # A break
+    t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+    t1.addNotes(intervs=['C4'], duration=1, volume=40)
+    t1.addNotes(intervs=['D4'], duration=1, volume=40)
+    t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+    # Love songs and do-wop I vi IV V
+    for i in [1, 2, 3, 4]:
+        t1.addChord(chord="I", duration=2, volume=80, octave=4)
+        t1.addChord(chord="vi", duration=2, volume=80, octave=4)
+        t1.addChord(chord="IV", duration=2, volume=80, octave=4)
+        t1.addChord(chord="V", duration=2, volume=80, octave=4)
+
+if 1 == 2:
+    # A break
+    t1.addChord(chord="IV", duration=1, volume=0, octave=4)
+    t1.addNotes(intervs=['C4'], duration=1, volume=40)
+    t1.addNotes(intervs=['D4'], duration=1, volume=40)
+    # Harmonic technique I bVII I
+    for i in [1, 2, 3, 4]:
+        t1.addChord(chord="I", duration=2, volume=80, octave=4)
+        t1.addChord(chord="bVII", duration=2, volume=80, octave=4)
+        t1.addChord(chord="I", duration=2, volume=80, octave=4)
 
 
 
@@ -98,6 +171,7 @@ for i in [1,2]:
 
 print("Done")
 t1.writeSong("/Users/davidsky/my_midi/test01.mid")
+print("/Users/davidsky/my_midi/test01.mid")
 exit(-123)
 
 def inKey(nDF, keyS, typeS, interv=0, octave=4):

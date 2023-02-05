@@ -2,6 +2,7 @@
 # oneSong.py - a Python object used to create a song
 #
 import pandas as pd
+import random
 from midiutil import MIDIFile
 
 class oneSong:
@@ -169,10 +170,23 @@ class oneSong:
         ]
         self.notesDF = pd.DataFrame(notesList, columns=notesListCols)
 
+        self.chords = {
+            "I":    [1, 3, 5],          # Major chord of the given key
+            "Id7":  [1, 3, 5, 7],       # C major 7 major say, in key of C - C E G B
+            "ii-7": [2, 4, 6, 1],       # D minor 7 say, in key of C - D F A C
+            "vi":   [6, 1, 3],          # A minor say, in key of C - A C E 9 1 4
+            "IV":   [4, 6, 1],          # F major say, in key of C - F A C
+            "V":   [5, 7, 2],           # G major say, in key of C - G B D
+            "V7":   [5, 7, 2, 4],       # G dominant 7 major say, in key of C - G B D F
+            "bVIII":   [1, 4, 6],       # In C major that would be C Bb F C
+            "sus2": [1, 2, 5],
+            "sus4": [1, 4, 5]
+        }
+
         # THe actual midi file object
-        self.t = MIDIFile(3)
+        self.t = MIDIFile(4)
         self.t.addTempo(tracks, 0, tempo)
-        self.time=0
+        self.time=[0,0,0,0]
         self.channel = 0
         # duration = 1  # In beats
         # volume = 100
@@ -204,39 +218,135 @@ class oneSong:
             inc = 5 if interv == 4 else inc
             inc = 7 if interv == 5 else inc
             inc = 9 if interv == 6 else inc
+            inc = 10 if interv == 65 else inc
             inc = 11 if interv == 7 else inc
             inc = 12 if interv == 8 else inc
             return basePitch + inc
         else:
             return -888
 
-    def addNotes(self, intervs, duration, volume):
+    def addNotes(self, intervs, duration, volume, track=1):
         for notes in intervs:
-            self.t.addNote(1, self.channel, self.notesDF[self.notesDF['note name'] == notes].pitch.iat[0], self.time, duration=duration, volume=volume)
-        self.time = self.time + duration
+            self.t.addNote(track, self.channel, self.notesDF[self.notesDF['note name'] == notes].pitch.iat[0], self.time[track], duration=duration, volume=volume)
+        self.time[track] = self.time[track] + duration
 
-    def addChord(self, chord, octave, duration, volume):
+    def addRandom(self, chord, octave, totalDuration, volume, track=1, div=2, max=2):
         # Manual to start with
-        if chord=="I":
-            # Major chord of the given key
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=3, octave=octave), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time, duration, volume)
-        elif chord=="vi":  # A minor say, in key of C - A C E 9 1 4
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=6, octave=octave), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave+1), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=3, octave=octave+1), self.time, duration, volume)
-        elif chord=="IV":  # F major say, in key of C - F A C
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=4, octave=octave), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=6, octave=octave), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave+1), self.time, duration, volume)
-        elif chord=="V":  # G major say, in key of C - G B D
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=7, octave=octave), self.time, duration, volume)
-            self.t.addNote(1, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=2, octave=octave+1), self.time, duration, volume)
+        duration = totalDuration / div
+        print(f"Random chord - totalDuration={totalDuration} divided into {div} divisions of {duration}")
+        for i in range(0,div):
+            played=0
+            if chord == "sus2":
+                # Sus 2 - ie for C it is C D G
+                if random.choice([True, False]):
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume)  # G
+                    played=played+1
+                if random.choice([True, False]) and played < max:
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=2, octave=octave), self.time[track], duration, volume)  # D
+                    played = played + 1
+                if random.choice([True, False]) and played < max:
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time[track], duration, volume)  # C
+            elif chord == "sus4":
+                # Sus 2 - ie for C it is C F G
+                if random.choice([True, False]):
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time[track], duration, volume)  # C
+                    played = played + 1
+                if random.choice([True, False]) and played < max:
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=4, octave=octave), self.time[track], duration, volume)  # F
+                    played = played + 1
+                if random.choice([True, False]) and played < max:
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume)  # G
+                    played = played + 1
+            elif chord == "I":
+                # Major chord of the given key
+                if random.choice([True, False]):
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume)
+                    played = played + 1
+                if random.choice([True, False]) and played < max:
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=3, octave=octave), self.time[track], duration, volume)
+                    played = played + 1
+                if random.choice([True, False]) and played < max:
+                    self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time[track], duration, volume)
+                    played = played + 1
 
+            self.time[track] = self.time[track] + duration
+            print(f"  - ({i}) added on sub random for {duration}")
+    def addChord(self, chord, octave, duration, volume, track=1):
+        # Use the self.chords definition
+        tChords = self.chords[chord]
+        tOctave = octave # Increase if we loop around the offsets
+        highest = 0
+        print(f"Chord of {chord}")
+        for oChord in tChords:
+            print(f"    - {oChord}")
+            if oChord < highest:
+                tOctave = tOctave + 1
+                print(f"Increase the octave for {oChord}")
+            highest = oChord
+            self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=oChord, octave=tOctave), self.time[track], duration, volume)
+        self.time[track] = self.time[track] + duration
 
-        self.time = self.time + duration
+        #
+        # # Manual to start with
+        # if chord=="sus2":  #
+        #     # Sus 2 - ie for C it is C D G
+        #     tChords = self.chords["sus2"]
+        #     for oChord in tChords:
+        #         self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=oChord, octave=octave), self.time[track], duration, volume) # C
+        #     # self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=2, octave=octave), self.time[track], duration, volume) # D
+        #     # self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume) # G
+        # elif chord=="sus4":
+        #     # Sus 2 - ie for C it is C F G
+        #     tChords = self.chords["sus4"]
+        #     for oChord in tChords:
+        #         self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=oChord, octave=octave), self.time[track], duration, volume) # C
+        #
+        #     # self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time[track], duration, volume) # C
+        #     # self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=4, octave=octave), self.time[track], duration, volume) # F
+        #     # self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume) # G
+        # elif chord=="I":
+        #     # Major chord of the given key
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=3, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume)
+        # elif chord == "Id7":  # C major 7 major say, in key of C - C E G B
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time[track], duration, volume)  # C
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=3, octave=octave), self.time[track], duration, volume)  # E
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume)  # G
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=7, octave=octave), self.time[track], duration, volume)  # B
+        # elif chord=="ii-7":  # D minor 7 say, in key of C - D F A C
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=2, octave=octave), self.time[track], duration, volume) # D
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=4, octave=octave), self.time[track], duration, volume) # F
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=6, octave=octave), self.time[track], duration, volume) # A
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave + 1), self.time[track], duration, volume) # C
+        # elif chord=="vi":  # A minor say, in key of C - A C E 9 1 4
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=6, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave+1), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=3, octave=octave+1), self.time[track], duration, volume)
+        #     # self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=7, octave=octave), self.time[track], duration, volume) # B
+        # elif chord=="IV":  # F major say, in key of C - F A C
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=4, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=6, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave+1), self.time[track], duration, volume)
+        # elif chord=="V":  # G major say, in key of C - G B D
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=7, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=2, octave=octave+1), self.time[track], duration, volume)
+        # elif chord == "V7":  # G dominant 7 major say, in key of C - G B D F
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=5, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=7, octave=octave), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=2, octave=octave + 1), self.time[track], duration, volume)
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=4, octave=octave), self.time[track], duration, volume)
+        # elif chord == "bVII": # In C major that would be C Bb F C
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave), self.time[track], duration, volume)  # C
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=4, octave=octave), self.time[track], duration, volume)  # F
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=65, octave=octave), self.time[track], duration, volume)  # Bflat
+        #
+        #     self.t.addNote(track, self.channel, self.inKey(nDF=self.notesDF, keyS=self.key, typeS='major', interv=1, octave=octave+1), self.time[track], duration, volume)  # C
+        #
+        #
+        #
+        # self.time[track] = self.time[track] + duration
 
     def changeKey(self, newKey):
         self.key = newKey
